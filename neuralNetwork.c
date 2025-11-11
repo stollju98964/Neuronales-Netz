@@ -5,7 +5,7 @@
 #include "neuralNetwork.h"
 
 #define BUFFER_SIZE 100
-#define FILE_HEADER_STRING "__info2_neural_network_file_format__"
+//#define FILE_HEADER_STRING "__info2_neural_network_file_format__"
 
 static void softmax(Matrix *matrix)
 {

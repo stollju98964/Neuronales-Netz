@@ -8,42 +8,41 @@
 
 static void prepareNeuralNetworkFile(const char *path, const NeuralNetwork nn)
 {
-    FILE *file = fopen(path, "w");
-    if (file == NULL) {
+    FILE *file = fopen(path, "wb");
+    if (file == NULL)
+    {
         perror("Fehler beim Öffnen der Datei");
         exit(1);
     }
 
-    // Header schreiben
-    fprintf(file, "__info2_neural_network_file_format__\n");
+    // 1) Header schreiben (ohne Nullterminator)
+    fwrite(FILE_HEADER_STRING, sizeof(char), strlen(FILE_HEADER_STRING), file);
 
-    // Anzahl der Schichten
-    fprintf(file, "%d\n", nn.numberOfLayers);
+    // 2) Für jede Schicht: inputDim / outputDim + Weights + Biases
+    for (unsigned int l = 0; l < nn.numberOfLayers; l++)
+    {
+        unsigned int inputDim = nn.layers[l].weights.cols;
+        unsigned int outputDim = nn.layers[l].weights.rows;
 
-    // Jede Schicht schreiben
-    for (int l = 0; l < nn.numberOfLayers; l++) {
-        const Layer *layer = &nn.layers[l];
+        // input und output Dimensionen schreiben
+        fwrite(&inputDim, sizeof(int), 1, file);
+        fwrite(&outputDim, sizeof(int), 1, file);
 
-        // Gewichte
-        fprintf(file, "%d %d\n", layer->weights.rows, layer->weights.cols);
-        int nWeights = layer->weights.rows * layer->weights.cols;
-        for (int i = 0; i < nWeights; i++) {
-            fprintf(file, "%g ", (double)layer->weights.buffer[i]);
-        }
-        fprintf(file, "\n");
+        // Weights: output × input
+        fwrite(nn.layers[l].weights.buffer, sizeof(MatrixType),
+               outputDim * inputDim, file);
 
-        // Biases
-        fprintf(file, "%d %d\n", layer->biases.rows, layer->biases.cols);
-        int nBiases = layer->biases.rows * layer->biases.cols;
-        for (int i = 0; i < nBiases; i++) {
-            fprintf(file, "%g ", (double)layer->biases.buffer[i]);
-        }
-        fprintf(file, "\n");
+        // Biases: output × 1
+        fwrite(nn.layers[l].biases.buffer, sizeof(MatrixType),
+               outputDim * 1, file);
     }
+
+    // 3) Am Ende: Letzte outputDimension = 0, um die Schleife zu beenden
+    unsigned int zero = 0;
+    fwrite(&zero, sizeof(int), 1, file);
 
     fclose(file);
 }
-
 void test_loadModelReturnsCorrectNumberOfLayers(void)
 {
     const char *path = "some__nn_test_file.info2";

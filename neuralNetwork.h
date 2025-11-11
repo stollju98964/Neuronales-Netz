@@ -1,5 +1,7 @@
 #ifndef NEURALNETWORK_H
 #define NEURALNETWORK_H
+#define FILE_HEADER_STRING "__info2_neural_network_file_format__"
+
 
 #include "imageInput.h"
 #include "matrix.h"
