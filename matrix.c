@@ -9,15 +9,15 @@ Matrix createMatrix(unsigned int rows, unsigned int cols)
     Matrix m;
     m.rows = 0;
     m.cols = 0;
-    m.data = NULL;
+    m.buffer = NULL;
 
     if (rows == 0 || cols == 0) {
         return m;
     }
 
     /* calloc initialisiert mit 0 (praktisch UNDEFINED_MATRIX_VALUE) */
-    m.data = (MatrixType *)calloc((size_t)rows * (size_t)cols, sizeof(MatrixType));
-    if (m.data == NULL) {
+    m.buffer = (MatrixType *)calloc((size_t)rows * (size_t)cols, sizeof(MatrixType));
+    if (m.buffer == NULL) {
         /* Allocation failed -> return empty matrix */
         return m;
     }
@@ -30,9 +30,9 @@ Matrix createMatrix(unsigned int rows, unsigned int cols)
 void clearMatrix(Matrix *matrix)
 {
     if (matrix == NULL) return;
-    if (matrix->data != NULL) {
-        free(matrix->data);
-        matrix->data = NULL;
+    if (matrix->buffer != NULL) {
+        free(matrix->buffer);
+        matrix->buffer = NULL;
     }
     matrix->rows = 0;
     matrix->cols = 0;
@@ -40,18 +40,18 @@ void clearMatrix(Matrix *matrix)
 
 void setMatrixAt(MatrixType value, Matrix matrix, unsigned int rowIdx, unsigned int colIdx)
 {
-    if (matrix.data == NULL) return;
+    if (matrix.buffer == NULL) return;
     if (rowIdx >= matrix.rows || colIdx >= matrix.cols) return;
     size_t idx = (size_t)rowIdx * matrix.cols + colIdx;
-    matrix.data[idx] = value;
+    matrix.buffer[idx] = value;
 }
 
 MatrixType getMatrixAt(const Matrix matrix, unsigned int rowIdx, unsigned int colIdx)
 {
-    if (matrix.data == NULL) return (MatrixType)UNDEFINED_MATRIX_VALUE;
+    if (matrix.buffer == NULL) return (MatrixType)UNDEFINED_MATRIX_VALUE;
     if (rowIdx >= matrix.rows || colIdx >= matrix.cols) return (MatrixType)UNDEFINED_MATRIX_VALUE;
     size_t idx = (size_t)rowIdx * matrix.cols + colIdx;
-    return matrix.data[idx];
+    return matrix.buffer[idx];
 }
 
 Matrix add(const Matrix matrix1, const Matrix matrix2)
@@ -59,10 +59,10 @@ Matrix add(const Matrix matrix1, const Matrix matrix2)
     // Elementweise Addition
     if (matrix1.rows == matrix2.rows && matrix1.cols == matrix2.cols) {
         Matrix result = createMatrix(matrix1.rows, matrix1.cols);
-        if (result.data == NULL) return result;
+        if (result.buffer == NULL) return result;
         size_t total = (size_t)matrix1.rows * matrix1.cols;
         for (size_t i = 0; i < total; ++i) {
-            result.data[i] = matrix1.data[i] + matrix2.data[i];
+            result.buffer[i] = matrix1.buffer[i] + matrix2.buffer[i];
         }
         return result;
     }
@@ -70,7 +70,7 @@ Matrix add(const Matrix matrix1, const Matrix matrix2)
     // Broadcasting: matrix2 ist Spaltenvektor
     if (matrix1.rows == matrix2.rows && matrix2.cols == 1) {
         Matrix result = createMatrix(matrix1.rows, matrix1.cols);
-        if (result.data == NULL) return result;
+        if (result.buffer == NULL) return result;
         for (unsigned int i = 0; i < matrix1.rows; ++i) {
             MatrixType v = getMatrixAt(matrix2, i, 0);
             for (unsigned int j = 0; j < matrix1.cols; ++j) {
@@ -83,7 +83,7 @@ Matrix add(const Matrix matrix1, const Matrix matrix2)
     // Broadcasting: matrix1 ist Spaltenvektor
     if (matrix2.rows == matrix1.rows && matrix1.cols == 1) {
         Matrix result = createMatrix(matrix2.rows, matrix2.cols);
-        if (result.data == NULL) return result;
+        if (result.buffer == NULL) return result;
         for (unsigned int i = 0; i < matrix2.rows; ++i) {
             MatrixType v = getMatrixAt(matrix1, i, 0);
             for (unsigned int j = 0; j < matrix2.cols; ++j) {
@@ -104,7 +104,7 @@ Matrix multiply(const Matrix matrix1, const Matrix matrix2)
     }
 
     Matrix result = createMatrix(matrix1.rows, matrix2.cols);
-    if (result.data == NULL) return result;
+    if (result.buffer == NULL) return result;
 
     for (unsigned int i = 0; i < matrix1.rows; ++i) {
         for (unsigned int j = 0; j < matrix2.cols; ++j) {
