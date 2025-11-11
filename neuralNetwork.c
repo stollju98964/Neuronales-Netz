@@ -170,7 +170,7 @@ NeuralNetwork loadModel(const char *path)
 
 static Matrix imageBatchToMatrixOfImageVectors(const GrayScaleImage images[], unsigned int count)
 {
-    Matrix matrix = {NULL, 0, 0};
+    Matrix matrix = {0, 0, NULL};
 
     if(count > 0 && images != NULL)
     {

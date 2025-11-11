@@ -8,7 +8,40 @@
 
 static void prepareNeuralNetworkFile(const char *path, const NeuralNetwork nn)
 {
-    // TODO
+    FILE *file = fopen(path, "w");
+    if (file == NULL) {
+        perror("Fehler beim Öffnen der Datei");
+        exit(1);
+    }
+
+    // Header schreiben
+    fprintf(file, "__info2_neural_network_file_format__\n");
+
+    // Anzahl der Schichten
+    fprintf(file, "%d\n", nn.numberOfLayers);
+
+    // Jede Schicht schreiben
+    for (int l = 0; l < nn.numberOfLayers; l++) {
+        const Layer *layer = &nn.layers[l];
+
+        // Gewichte
+        fprintf(file, "%d %d\n", layer->weights.rows, layer->weights.cols);
+        int nWeights = layer->weights.rows * layer->weights.cols;
+        for (int i = 0; i < nWeights; i++) {
+            fprintf(file, "%g ", (double)layer->weights.buffer[i]);
+        }
+        fprintf(file, "\n");
+
+        // Biases
+        fprintf(file, "%d %d\n", layer->biases.rows, layer->biases.cols);
+        int nBiases = layer->biases.rows * layer->biases.cols;
+        for (int i = 0; i < nBiases; i++) {
+            fprintf(file, "%g ", (double)layer->biases.buffer[i]);
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
 }
 
 void test_loadModelReturnsCorrectNumberOfLayers(void)
