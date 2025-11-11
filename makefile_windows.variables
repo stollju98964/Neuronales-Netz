@@ -1,0 +1,2 @@
+LDFLAGS = -lopengl32 -lgdi32 -lwinmm
+BINARIES = ./windows

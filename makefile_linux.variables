@@ -1,0 +1,2 @@
+LDFLAGS = -lGL -lX11 -lm
+BINARIES = ./linux

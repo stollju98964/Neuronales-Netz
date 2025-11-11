@@ -1,0 +1,4 @@
+mnist
+runTests
+*.o
+*.exe
