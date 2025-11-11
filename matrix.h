@@ -10,7 +10,7 @@ typedef float MatrixType;
 typedef struct {
     unsigned int rows;
     unsigned int cols;
-    MatrixType *data; /* Zeiger auf rows*cols Elemente, zeilen-major */
+    MatrixType *buffer; /* Zeiger auf rows*cols Elemente, zeilen-major */
 } Matrix;
 
 Matrix createMatrix(unsigned int rows, unsigned int cols);
