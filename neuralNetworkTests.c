@@ -15,34 +15,51 @@ static void prepareNeuralNetworkFile(const char *path, const NeuralNetwork nn)
         exit(1);
     }
 
-    // 1) Header schreiben (ohne Nullterminator)
+    // Header (ohne Nullterminator)
     fwrite(FILE_HEADER_STRING, sizeof(char), strlen(FILE_HEADER_STRING), file);
 
-    // 2) Für jede Schicht: inputDim / outputDim + Weights + Biases
-    for (unsigned int l = 0; l < nn.numberOfLayers; l++)
+    if (nn.numberOfLayers > 0)
     {
-        unsigned int inputDim = nn.layers[l].weights.cols;
-        unsigned int outputDim = nn.layers[l].weights.rows;
+        // Erste Schicht: schreibe inputDim und outputDim
+        unsigned int inputDim = nn.layers[0].weights.cols;
+        unsigned int outputDim = nn.layers[0].weights.rows;
 
-        // input und output Dimensionen schreiben
         fwrite(&inputDim, sizeof(int), 1, file);
         fwrite(&outputDim, sizeof(int), 1, file);
 
-        // Weights: output × input
-        fwrite(nn.layers[l].weights.buffer, sizeof(MatrixType),
-               outputDim * inputDim, file);
+        // Weights und Biases der ersten Schicht
+        fwrite(nn.layers[0].weights.buffer, sizeof(MatrixType),
+               (size_t)outputDim * (size_t)inputDim, file);
+        fwrite(nn.layers[0].biases.buffer, sizeof(MatrixType),
+               (size_t)outputDim * 1, file);
 
-        // Biases: output × 1
-        fwrite(nn.layers[l].biases.buffer, sizeof(MatrixType),
-               outputDim * 1, file);
+        // Folge-Schichten: pro Schicht nur das neue outputDim schreiben,
+        // dann weights und biases
+        for (unsigned int l = 1; l < nn.numberOfLayers; l++)
+        {
+            unsigned int nextOutputDim = nn.layers[l].weights.rows;
+            unsigned int nextInputDim = nn.layers[l].weights.cols; // sollte gleich vorherigem outputDim sein
+
+            // nur outputDimension schreiben (so erwartet loadModel)
+            fwrite(&nextOutputDim, sizeof(int), 1, file);
+
+            // Weights: nextOutputDim x nextInputDim
+            fwrite(nn.layers[l].weights.buffer, sizeof(MatrixType),
+                   (size_t)nextOutputDim * (size_t)nextInputDim, file);
+
+            // Biases: nextOutputDim x 1
+            fwrite(nn.layers[l].biases.buffer, sizeof(MatrixType),
+                   (size_t)nextOutputDim * 1, file);
+        }
     }
 
-    // 3) Am Ende: Letzte outputDimension = 0, um die Schleife zu beenden
+    // Terminator (0)
     unsigned int zero = 0;
     fwrite(&zero, sizeof(int), 1, file);
 
     fclose(file);
 }
+
 void test_loadModelReturnsCorrectNumberOfLayers(void)
 {
     const char *path = "some__nn_test_file.info2";
