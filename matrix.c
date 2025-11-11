@@ -56,19 +56,45 @@ MatrixType getMatrixAt(const Matrix matrix, unsigned int rowIdx, unsigned int co
 
 Matrix add(const Matrix matrix1, const Matrix matrix2)
 {
-    if (matrix1.rows != matrix2.rows || matrix1.cols != matrix2.cols) {
-        return createMatrix(0, 0);
+    // Elementweise Addition
+    if (matrix1.rows == matrix2.rows && matrix1.cols == matrix2.cols) {
+        Matrix result = createMatrix(matrix1.rows, matrix1.cols);
+        if (result.data == NULL) return result;
+        size_t total = (size_t)matrix1.rows * matrix1.cols;
+        for (size_t i = 0; i < total; ++i) {
+            result.data[i] = matrix1.data[i] + matrix2.data[i];
+        }
+        return result;
     }
 
-    Matrix result = createMatrix(matrix1.rows, matrix1.cols);
-    if (result.data == NULL) return result;
-
-    size_t total = (size_t)matrix1.rows * matrix1.cols;
-    for (size_t i = 0; i < total; ++i) {
-        result.data[i] = matrix1.data[i] + matrix2.data[i];
+    // Broadcasting: matrix2 ist Spaltenvektor
+    if (matrix1.rows == matrix2.rows && matrix2.cols == 1) {
+        Matrix result = createMatrix(matrix1.rows, matrix1.cols);
+        if (result.data == NULL) return result;
+        for (unsigned int i = 0; i < matrix1.rows; ++i) {
+            MatrixType v = getMatrixAt(matrix2, i, 0);
+            for (unsigned int j = 0; j < matrix1.cols; ++j) {
+                setMatrixAt(getMatrixAt(matrix1, i, j) + v, result, i, j);
+            }
+        }
+        return result;
     }
 
-    return result;
+    // Broadcasting: matrix1 ist Spaltenvektor
+    if (matrix2.rows == matrix1.rows && matrix1.cols == 1) {
+        Matrix result = createMatrix(matrix2.rows, matrix2.cols);
+        if (result.data == NULL) return result;
+        for (unsigned int i = 0; i < matrix2.rows; ++i) {
+            MatrixType v = getMatrixAt(matrix1, i, 0);
+            for (unsigned int j = 0; j < matrix2.cols; ++j) {
+                setMatrixAt(v + getMatrixAt(matrix2, i, j), result, i, j);
+            }
+        }
+        return result;
+    }
+
+    // Nicht unterstützte Dimensionen
+    return createMatrix(0, 0);
 }
 
 Matrix multiply(const Matrix matrix1, const Matrix matrix2)
